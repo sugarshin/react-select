@@ -808,9 +808,11 @@ const Select = React.createClass({
 		if (!menu) {
 			return null;
 		}
-
+		let menuContainerStyle = Object.assign({}, this.props.menuContainerStyle, {
+			left: ReactDOM.findDOMNode(this.refs.input).offsetLeft
+		});
 		return (
-			<div ref="menuContainer" className="Select-menu-outer" style={this.props.menuContainerStyle}>
+			<div ref="menuContainer" className="Select-menu-outer" style={menuContainerStyle}>
 				<div ref="menu" className="Select-menu"
 						 style={this.props.menuStyle}
 						 onScroll={this.handleMenuScroll}
