@@ -768,6 +768,7 @@ var Select = _react2['default'].createClass({
 	setValue: function setValue(value) {
 		var _this = this;
 
+		this.setState({ isOpen: false });
 		if (this.props.autoBlur) {
 			this.blurInput();
 		}
