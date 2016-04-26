@@ -1146,10 +1146,12 @@ var Select = _react2['default'].createClass({
 		if (!menu) {
 			return null;
 		}
-
+		var menuContainerStyle = _extends({}, this.props.menuContainerStyle, {
+			left: _reactDom2['default'].findDOMNode(this.refs.input).offsetLeft
+		});
 		return _react2['default'].createElement(
 			'div',
-			{ ref: 'menuContainer', className: 'Select-menu-outer', style: this.props.menuContainerStyle },
+			{ ref: 'menuContainer', className: 'Select-menu-outer', style: menuContainerStyle },
 			_react2['default'].createElement(
 				'div',
 				{ ref: 'menu', className: 'Select-menu',
