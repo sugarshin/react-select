@@ -443,6 +443,7 @@ const Select = React.createClass({
 	},
 
 	setValue (value) {
+		this.setState({ isOpen: false });
 		if (this.props.autoBlur){
 			this.blurInput();
 		}
