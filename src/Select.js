@@ -155,7 +155,7 @@ const Select = React.createClass({
 		if (this.props.autofocus) {
 			this.focus();
 		}
-		this._input = ReactDOM.findDOMNode(this.refs.input) || null;
+		this._input = ReactDOM.findDOMNode(this.refs.input);
 	},
 
 	componentWillReceiveProps(nextProps) {
@@ -205,8 +205,6 @@ const Select = React.createClass({
 		if (prevProps.disabled !== this.props.disabled) {
 			this.setState({ isFocused: false }); // eslint-disable-line react/no-did-update-set-state
 		}
-
-		this._input = ReactDOM.findDOMNode(this.refs.input) || null;
 	},
 
 	componentWillUnmount () {
