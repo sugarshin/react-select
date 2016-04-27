@@ -143,6 +143,7 @@ const Select = React.createClass({
 		if (this.props.autofocus) {
 			this.focus();
 		}
+		this._input = ReactDOM.findDOMNode(this.refs.input) || null;
 	},
 
 	componentWillReceiveProps(nextProps) {
@@ -193,6 +194,12 @@ const Select = React.createClass({
 		if (prevProps.disabled !== this.props.disabled) {
 			this.setState({ isFocused: false }); // eslint-disable-line react/no-did-update-set-state
 		}
+
+		this._input = ReactDOM.findDOMNode(this.refs.input) || null;
+	},
+
+	componentWillUnmount () {
+		this._input = null;
 	},
 
 	focus () {
@@ -809,8 +816,10 @@ const Select = React.createClass({
 		if (!menu) {
 			return null;
 		}
+		let { offsetLeft } = this._input;
+		let _offsetLeft = offsetLeft > 500 ? offsetLeft - 280 : offsetLeft;
 		let menuContainerStyle = Object.assign({}, this.props.menuContainerStyle, {
-			left: ReactDOM.findDOMNode(this.refs.input).offsetLeft
+			left: _offsetLeft + 24
 		});
 		return (
 			<div ref="menuContainer" className="Select-menu-outer" style={menuContainerStyle}>
