@@ -453,6 +453,7 @@ var Select = _react2['default'].createClass({
 		if (this.props.autofocus) {
 			this.focus();
 		}
+		this._input = _reactDom2['default'].findDOMNode(this.refs.input) || null;
 	},
 
 	componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
@@ -503,6 +504,12 @@ var Select = _react2['default'].createClass({
 		if (prevProps.disabled !== this.props.disabled) {
 			this.setState({ isFocused: false }); // eslint-disable-line react/no-did-update-set-state
 		}
+
+		this._input = _reactDom2['default'].findDOMNode(this.refs.input) || null;
+	},
+
+	componentWillUnmount: function componentWillUnmount() {
+		this._input = null;
 	},
 
 	focus: function focus() {
@@ -1147,8 +1154,11 @@ var Select = _react2['default'].createClass({
 		if (!menu) {
 			return null;
 		}
+		var offsetLeft = this._input.offsetLeft;
+
+		var _offsetLeft = offsetLeft > 500 ? offsetLeft - 280 : offsetLeft;
 		var menuContainerStyle = _extends({}, this.props.menuContainerStyle, {
-			left: _reactDom2['default'].findDOMNode(this.refs.input).offsetLeft
+			left: _offsetLeft + 24
 		});
 		return _react2['default'].createElement(
 			'div',
