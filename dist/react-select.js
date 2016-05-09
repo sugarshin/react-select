@@ -65,6 +65,7 @@ var Async = _react2['default'].createClass({
 		loadingPlaceholder: _react2['default'].PropTypes.string, // replaces the placeholder while options are loading
 		minimumInput: _react2['default'].PropTypes.number, // the minimum number of characters that trigger loadOptions
 		noResultsText: stringOrNode, // placeholder displayed when there are no matching search results (shared with Select)
+		onInputChange: _react2['default'].PropTypes.func, // onInputChange handler: function (inputValue) {}
 		placeholder: stringOrNode, // field placeholder, displayed when there's no value (shared with Select)
 		searchPromptText: _react2['default'].PropTypes.string, // label to prompt for search input
 		searchingText: _react2['default'].PropTypes.string },
@@ -126,6 +127,13 @@ var Async = _react2['default'].createClass({
 		};
 	},
 	loadOptions: function loadOptions(input) {
+		if (this.props.onInputChange) {
+			var nextState = this.props.onInputChange(input);
+			// Note: != used deliberately here to catch undefined and null
+			if (nextState != null) {
+				input = '' + nextState;
+			}
+		}
 		if (this.props.ignoreAccents) input = (0, _utilsStripDiacritics2['default'])(input);
 		if (this.props.ignoreCase) input = input.toLowerCase();
 		this._lastInput = input;
@@ -355,6 +363,7 @@ var Select = _react2['default'].createClass({
 		ignoreAccents: _react2['default'].PropTypes.bool, // whether to strip diacritics when filtering
 		ignoreCase: _react2['default'].PropTypes.bool, // whether to perform case-insensitive filtering
 		inputProps: _react2['default'].PropTypes.object, // custom attributes for the Input
+		inputRenderer: _react2['default'].PropTypes.func, // returns a custom input component
 		isLoading: _react2['default'].PropTypes.bool, // whether the Select is loading externally or not (such as options being loaded)
 		joinValues: _react2['default'].PropTypes.bool, // joins multiple values into a single form field with the delimiter (legacy mode)
 		labelKey: _react2['default'].PropTypes.string, // path of the label value in option objects
@@ -465,7 +474,6 @@ var Select = _react2['default'].createClass({
 		if (this.props.autofocus) {
 			this.focus();
 		}
-		this._input = _reactDom2['default'].findDOMNode(this.refs.input);
 	},
 
 	componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
@@ -515,10 +523,6 @@ var Select = _react2['default'].createClass({
 		if (prevProps.disabled !== this.props.disabled) {
 			this.setState({ isFocused: false }); // eslint-disable-line react/no-did-update-set-state
 		}
-	},
-
-	componentWillUnmount: function componentWillUnmount() {
-		this._input = null;
 	},
 
 	focus: function focus() {
@@ -791,7 +795,6 @@ var Select = _react2['default'].createClass({
 	setValue: function setValue(value) {
 		var _this = this;
 
-		this.setState({ isOpen: false });
 		if (this.props.autoBlur) {
 			this.blurInput();
 		}
@@ -970,42 +973,46 @@ var Select = _react2['default'].createClass({
 	},
 
 	renderInput: function renderInput(valueArray) {
-		var className = (0, _classnames2['default'])('Select-input', this.props.inputProps.className);
-		if (this.props.disabled || !this.props.searchable) {
-			return _react2['default'].createElement('div', _extends({}, this.props.inputProps, {
-				className: className,
-				tabIndex: this.props.tabIndex || 0,
-				onBlur: this.handleInputBlur,
-				onFocus: this.handleInputFocus,
-				ref: 'input',
-				style: { border: 0, width: 1, display: 'inline-block' } }));
+		if (this.props.inputRenderer) {
+			return this.props.inputRenderer();
+		} else {
+			var className = (0, _classnames2['default'])('Select-input', this.props.inputProps.className);
+			if (this.props.disabled || !this.props.searchable) {
+				return _react2['default'].createElement('div', _extends({}, this.props.inputProps, {
+					className: className,
+					tabIndex: this.props.tabIndex || 0,
+					onBlur: this.handleInputBlur,
+					onFocus: this.handleInputFocus,
+					ref: 'input',
+					style: { border: 0, width: 1, display: 'inline-block' } }));
+			}
+			if (this.props.autosize) {
+				return _react2['default'].createElement(_reactInputAutosize2['default'], _extends({}, this.props.inputProps, {
+					className: className,
+					tabIndex: this.props.tabIndex,
+					onBlur: this.handleInputBlur,
+					onChange: this.handleInputChange,
+					onFocus: this.handleInputFocus,
+					minWidth: '5',
+					ref: 'input',
+					required: this.state.required,
+					value: this.state.inputValue
+				}));
+			}
+			return _react2['default'].createElement(
+				'div',
+				{ className: className },
+				_react2['default'].createElement('input', _extends({}, this.props.inputProps, {
+					tabIndex: this.props.tabIndex,
+					onBlur: this.handleInputBlur,
+					onChange: this.handleInputChange,
+					onFocus: this.handleInputFocus,
+					ref: 'input',
+					required: this.state.required,
+					value: this.state.inputValue
+				}))
+			);
 		}
-		if (this.props.autosize) {
-			return _react2['default'].createElement(_reactInputAutosize2['default'], _extends({}, this.props.inputProps, {
-				className: className,
-				tabIndex: this.props.tabIndex,
-				onBlur: this.handleInputBlur,
-				onChange: this.handleInputChange,
-				onFocus: this.handleInputFocus,
-				minWidth: '5',
-				ref: 'input',
-				required: this.state.required,
-				value: this.state.inputValue
-			}));
-		}
-		return _react2['default'].createElement(
-			'div',
-			{ className: className },
-			_react2['default'].createElement('input', _extends({}, this.props.inputProps, {
-				tabIndex: this.props.tabIndex,
-				onBlur: this.handleInputBlur,
-				onChange: this.handleInputChange,
-				onFocus: this.handleInputFocus,
-				ref: 'input',
-				required: this.state.required,
-				value: this.state.inputValue
-			}))
-		);
 	},
 
 	renderClear: function renderClear() {
@@ -1170,15 +1177,10 @@ var Select = _react2['default'].createClass({
 		if (!menu) {
 			return null;
 		}
-		var offsetLeft = this._input.offsetLeft;
 
-		var _offsetLeft = offsetLeft > 500 ? offsetLeft - 280 : offsetLeft;
-		var menuContainerStyle = _extends({}, this.props.menuContainerStyle, {
-			left: _offsetLeft + 24
-		});
 		return _react2['default'].createElement(
 			'div',
-			{ ref: 'menuContainer', className: 'Select-menu-outer', style: menuContainerStyle },
+			{ ref: 'menuContainer', className: 'Select-menu-outer', style: this.props.menuContainerStyle },
 			_react2['default'].createElement(
 				'div',
 				{ ref: 'menu', className: 'Select-menu',
@@ -1198,6 +1200,7 @@ var Select = _react2['default'].createClass({
 		var focusedOption = this._focusedOption = this.getFocusableOption(valueArray[0]);
 		var className = (0, _classnames2['default'])('Select', this.props.className, {
 			'Select--multi': this.props.multi,
+			'Select--single': !this.props.multi,
 			'is-disabled': this.props.disabled,
 			'is-focused': this.state.isFocused,
 			'is-loading': this.props.isLoading,

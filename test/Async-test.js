@@ -82,7 +82,6 @@ describe('Async', () => {
 				/>);
 		});
 
-
 		it('shows the returns options when the result returns', () => {
 
 			// Unexpected comes with promises built in - we'll use them
@@ -105,6 +104,26 @@ describe('Async', () => {
 			});
 		});
 
+		it('shows "Loading..." after typing if refined search matches none of the previous results', () => {
+
+			loadOptions.returns(expect.promise((resolve, reject) => {
+				resolve({ options: [{ value: 1, label: 'test' }] });
+			}));
+
+			typeSearchText('te');
+
+			return loadOptions.firstCall.returnValue.then(() => {
+
+				typeSearchText('ten');
+
+				return expect(renderer, 'to have rendered',
+					<Select
+						isLoading
+						placeholder="Loading..."
+						noResultsText="Searching..."
+					/>);
+			});
+		});
 
 		it('ignores the result of an earlier call, when the responses come in the wrong order', () => {
 
@@ -159,6 +178,27 @@ describe('Async', () => {
 				// Previous results (from 'te') are thrown away, and we render with an empty options list
 				return expect(renderer, 'to have rendered', <Select options={ [] }/>);
 			});
+		});
+	});
+
+	describe('with an onInputChange prop', () => {
+
+		let input;
+		const onInputChange = v => input = v;
+
+		beforeEach(() => {
+
+			// Render an instance of the component
+			renderer.render(<Select.Async
+				loadOptions={loadOptions}
+				minimumInput={1}
+				onInputChange={onInputChange}
+			/>);
+		});
+
+		it('calls through to the provided onInputChange function', () => {
+			typeSearchText('hi');
+			return expect(input, 'to equal', 'hi');
 		});
 	});
 

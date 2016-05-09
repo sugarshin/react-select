@@ -51,8 +51,9 @@ const Async = React.createClass({
 		loadingPlaceholder: React.PropTypes.string,     // replaces the placeholder while options are loading
 		minimumInput: React.PropTypes.number,           // the minimum number of characters that trigger loadOptions
 		noResultsText: stringOrNode,                    // placeholder displayed when there are no matching search results (shared with Select)
+		onInputChange: React.PropTypes.func,            // onInputChange handler: function (inputValue) {}
 		placeholder: stringOrNode,                      // field placeholder, displayed when there's no value (shared with Select)
-		searchPromptText: React.PropTypes.string,       // label to prompt for search input
+		searchPromptText: stringOrNode,       // label to prompt for search input
 		searchingText: React.PropTypes.string,          // message to display while options are loading
 	},
 	getDefaultProps () {
@@ -110,8 +111,16 @@ const Async = React.createClass({
 		};
 	},
 	loadOptions (input) {
+		if (this.props.onInputChange) {
+			let nextState = this.props.onInputChange(input);
+			// Note: != used deliberately here to catch undefined and null
+			if (nextState != null) {
+				input = '' + nextState;
+			}
+		}
 		if (this.props.ignoreAccents) input = stripDiacritics(input);
 		if (this.props.ignoreCase) input = input.toLowerCase();
+
 		this._lastInput = input;
 		if (input.length < this.props.minimumInput) {
 			return this.resetState();
@@ -133,9 +142,10 @@ const Async = React.createClass({
 		let { isLoading, options } = this.state;
 		if (this.props.isLoading) isLoading = true;
 		let placeholder = isLoading ? this.props.loadingPlaceholder : this.props.placeholder;
-		if (!options.length) {
-			if (this._lastInput.length < this.props.minimumInput) noResultsText = this.props.searchPromptText;
-			if (isLoading) noResultsText = this.props.searchingText;
+		if (isLoading) {
+			noResultsText = this.props.searchingText;
+		} else if (!options.length && this._lastInput.length < this.props.minimumInput) {
+			noResultsText = this.props.searchPromptText;
 		}
 		return (
 			<Select
