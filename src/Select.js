@@ -53,6 +53,7 @@ const Select = React.createClass({
 		matchProp: React.PropTypes.string,          // (any|label|value) which option property to filter on
 		menuBuffer: React.PropTypes.number,         // optional buffer (in px) between the bottom of the viewport and the bottom of the menu
 		menuContainerStyle: React.PropTypes.object, // optional style to apply to the menu container
+		menuContainerKeepUp: React.PropTypes.bool,  // menu container will keep up with the cursor
 		menuRenderer: React.PropTypes.func,         // renders a custom menu with options
 		menuStyle: React.PropTypes.object,          // optional style to apply to the menu
 		multi: React.PropTypes.bool,                // multi-value input
@@ -837,16 +838,28 @@ const Select = React.createClass({
 		}
 	},
 
+	getMenuContainerKeepUpStyle () {
+		let { menuContainerStyle } = this.props;
+		let { offsetLeft } = this._input;
+		let wrapperStyles = getComputedStyle(this.refs.wrapper, '');
+		let wrapperWidth = parseInt(wrapperStyles.width, 10);
+		let menuContainerWidth = menuContainerStyle.width;
+		let _offsetLeft = offsetLeft > (wrapperWidth - menuContainerWidth) ?
+			offsetLeft - menuContainerWidth : offsetLeft;
+
+		return Object.assign({}, menuContainerStyle, {
+			left: _offsetLeft + parseInt(wrapperStyles.paddingLeft, 10)
+		});
+	},
+
 	renderOuter (options, valueArray, focusedOption) {
 		let menu = this.renderMenu(options, valueArray, focusedOption);
 		if (!menu) {
 			return null;
 		}
-		let { offsetLeft } = this._input;
-		let _offsetLeft = offsetLeft > 500 ? offsetLeft - 280 : offsetLeft;
-		let menuContainerStyle = Object.assign({}, this.props.menuContainerStyle, {
-			left: _offsetLeft + 24
-		});
+		let menuContainerStyle = this.props.menuContainerKeepUp && this.props.menuContainerStyle.width ?
+			this.getMenuContainerKeepUpStyle() : this.props.menuContainerStyle;
+
 		return (
 			<div ref="menuContainer" className="Select-menu-outer" style={menuContainerStyle}>
 				<div ref="menu" className="Select-menu"
