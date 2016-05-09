@@ -67,7 +67,7 @@ var Async = _react2['default'].createClass({
 		noResultsText: stringOrNode, // placeholder displayed when there are no matching search results (shared with Select)
 		onInputChange: _react2['default'].PropTypes.func, // onInputChange handler: function (inputValue) {}
 		placeholder: stringOrNode, // field placeholder, displayed when there's no value (shared with Select)
-		searchPromptText: _react2['default'].PropTypes.string, // label to prompt for search input
+		searchPromptText: stringOrNode, // label to prompt for search input
 		searchingText: _react2['default'].PropTypes.string },
 	// message to display while options are loading
 	getDefaultProps: function getDefaultProps() {
@@ -136,6 +136,7 @@ var Async = _react2['default'].createClass({
 		}
 		if (this.props.ignoreAccents) input = (0, _utilsStripDiacritics2['default'])(input);
 		if (this.props.ignoreCase) input = input.toLowerCase();
+
 		this._lastInput = input;
 		if (input.length < this.props.minimumInput) {
 			return this.resetState();
@@ -160,9 +161,10 @@ var Async = _react2['default'].createClass({
 
 		if (this.props.isLoading) isLoading = true;
 		var placeholder = isLoading ? this.props.loadingPlaceholder : this.props.placeholder;
-		if (!options.length) {
-			if (this._lastInput.length < this.props.minimumInput) noResultsText = this.props.searchPromptText;
-			if (isLoading) noResultsText = this.props.searchingText;
+		if (isLoading) {
+			noResultsText = this.props.searchingText;
+		} else if (!options.length && this._lastInput.length < this.props.minimumInput) {
+			noResultsText = this.props.searchPromptText;
 		}
 		return _react2['default'].createElement(_Select2['default'], _extends({}, this.props, {
 			ref: 'select',
@@ -371,6 +373,7 @@ var Select = _react2['default'].createClass({
 		matchProp: _react2['default'].PropTypes.string, // (any|label|value) which option property to filter on
 		menuBuffer: _react2['default'].PropTypes.number, // optional buffer (in px) between the bottom of the viewport and the bottom of the menu
 		menuContainerStyle: _react2['default'].PropTypes.object, // optional style to apply to the menu container
+		menuContainerKeepUp: _react2['default'].PropTypes.bool, // menu container will keep up with the cursor
 		menuRenderer: _react2['default'].PropTypes.func, // renders a custom menu with options
 		menuStyle: _react2['default'].PropTypes.object, // optional style to apply to the menu
 		multi: _react2['default'].PropTypes.bool, // multi-value input
@@ -474,6 +477,7 @@ var Select = _react2['default'].createClass({
 		if (this.props.autofocus) {
 			this.focus();
 		}
+		this._input = _reactDom2['default'].findDOMNode(this.refs.input);
 	},
 
 	componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
@@ -523,6 +527,10 @@ var Select = _react2['default'].createClass({
 		if (prevProps.disabled !== this.props.disabled) {
 			this.setState({ isFocused: false }); // eslint-disable-line react/no-did-update-set-state
 		}
+	},
+
+	componentWillUnmount: function componentWillUnmount() {
+		this._input = null;
 	},
 
 	focus: function focus() {
@@ -589,6 +597,11 @@ var Select = _react2['default'].createClass({
 		}
 
 		if (this.state.isFocused) {
+			// On iOS, we can get into a state where we think the input is focused but it isn't really,
+			// since iOS ignores programmatic calls to input.focus() that weren't triggered by a click event.
+			// Call focus() again here to be safe.
+			this.focus();
+
 			// if the input is focused, ensure the menu is open
 			this.setState({
 				isOpen: true,
@@ -677,7 +690,7 @@ var Select = _react2['default'].createClass({
 		if (this.state.inputValue !== event.target.value && this.props.onInputChange) {
 			var nextState = this.props.onInputChange(newInputValue);
 			// Note: != used deliberately here to catch undefined and null
-			if (nextState != null) {
+			if (nextState != null && typeof nextState !== 'object') {
 				newInputValue = '' + nextState;
 			}
 		}
@@ -795,6 +808,7 @@ var Select = _react2['default'].createClass({
 	setValue: function setValue(value) {
 		var _this = this;
 
+		this.setState({ isOpen: false });
 		if (this.props.autoBlur) {
 			this.blurInput();
 		}
@@ -1172,15 +1186,30 @@ var Select = _react2['default'].createClass({
 		}
 	},
 
+	getMenuContainerKeepUpStyle: function getMenuContainerKeepUpStyle() {
+		var menuContainerStyle = this.props.menuContainerStyle;
+		var offsetLeft = this._input.offsetLeft;
+
+		var wrapperStyles = getComputedStyle(this.refs.wrapper, '');
+		var wrapperWidth = parseInt(wrapperStyles.width, 10);
+		var menuContainerWidth = menuContainerStyle.width;
+		var _offsetLeft = offsetLeft > wrapperWidth - menuContainerWidth ? offsetLeft - menuContainerWidth : offsetLeft;
+
+		return _extends({}, menuContainerStyle, {
+			left: _offsetLeft + parseInt(wrapperStyles.paddingLeft, 10)
+		});
+	},
+
 	renderOuter: function renderOuter(options, valueArray, focusedOption) {
 		var menu = this.renderMenu(options, valueArray, focusedOption);
 		if (!menu) {
 			return null;
 		}
+		var menuContainerStyle = this.props.menuContainerKeepUp && this.props.menuContainerStyle.width ? this.getMenuContainerKeepUpStyle() : this.props.menuContainerStyle;
 
 		return _react2['default'].createElement(
 			'div',
-			{ ref: 'menuContainer', className: 'Select-menu-outer', style: this.props.menuContainerStyle },
+			{ ref: 'menuContainer', className: 'Select-menu-outer', style: menuContainerStyle },
 			_react2['default'].createElement(
 				'div',
 				{ ref: 'menu', className: 'Select-menu',
