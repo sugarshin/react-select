@@ -63,8 +63,8 @@ const Select = React.createClass({
 		matchPos: React.PropTypes.string,           // (any|start) match the start or entire string when filtering
 		matchProp: React.PropTypes.string,          // (any|label|value) which option property to filter on
 		menuBuffer: React.PropTypes.number,         // optional buffer (in px) between the bottom of the viewport and the bottom of the menu
-		menuContainerStyle: React.PropTypes.object, // optional style to apply to the menu container
 		menuContainerKeepUp: React.PropTypes.bool,  // menu container will keep up with the cursor
+		menuContainerStyle: React.PropTypes.object, // optional style to apply to the menu container
 		menuRenderer: React.PropTypes.func,         // renders a custom menu with options
 		menuStyle: React.PropTypes.object,          // optional style to apply to the menu
 		multi: React.PropTypes.bool,                // multi-value input
@@ -172,7 +172,8 @@ const Select = React.createClass({
 		if (this.props.autofocus) {
 			this.focus();
 		}
-		this._input = ReactDOM.findDOMNode(this.refs.input);
+		this._wrapperEl = ReactDOM.findDOMNode(this.wrapper);
+		this._inputEl = ReactDOM.findDOMNode(this.input);
 	},
 
 	componentWillReceiveProps(nextProps) {
@@ -226,7 +227,7 @@ const Select = React.createClass({
 	},
 
 	componentWillUnmount () {
-		this._input = null;
+		this._wrapperEl = this._inputEl = null;
 	},
 
 	focus () {
@@ -992,8 +993,8 @@ const Select = React.createClass({
 
 	getMenuContainerKeepUpStyle () {
 		let { menuContainerStyle } = this.props;
-		let { offsetLeft } = this._input;
-		let wrapperStyles = getComputedStyle(this.refs.wrapper, '');
+		let { offsetLeft } = this._inputEl;
+		let wrapperStyles = getComputedStyle(this._wrapperEl, '');
 		let wrapperWidth = parseInt(wrapperStyles.width, 10);
 		let menuContainerWidth = menuContainerStyle.width;
 		let _offsetLeft = offsetLeft > (wrapperWidth - menuContainerWidth) ?
