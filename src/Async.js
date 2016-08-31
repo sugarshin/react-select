@@ -88,7 +88,7 @@ const Async = React.createClass({
 		}
 	},
 	focus () {
-		this.refs.select.focus();
+		this.select.focus();
 	},
 	resetState () {
 		this._currentRequestId = -1;
@@ -135,7 +135,10 @@ const Async = React.createClass({
 			isLoading: true,
 		});
 		let responseHandler = this.getResponseHandler(input);
-		return thenPromise(this.props.loadOptions(input, responseHandler), responseHandler);
+		let inputPromise = thenPromise(this.props.loadOptions(input, responseHandler), responseHandler);
+		return inputPromise ? inputPromise.then(() => {
+			return input;
+		}) : input;
 	},
 	render () {
 		let { noResultsText } = this.props;
@@ -150,7 +153,7 @@ const Async = React.createClass({
 		return (
 			<Select
 				{...this.props}
-				ref="select"
+				ref={(ref) => this.select = ref}
 				isLoading={isLoading}
 				noResultsText={noResultsText}
 				onInputChange={this.loadOptions}
