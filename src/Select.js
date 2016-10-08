@@ -571,6 +571,10 @@ const Select = React.createClass({
 				break;
 			}
 		}
+
+		// Not infinite scroll
+		if ((dir === 'previous' && focusedIndex === 0) || (dir === 'next' && focusedIndex === options.length - 1)) return;
+
 		var focusedOption = options[0];
 		if (dir === 'next' && focusedIndex > -1 && focusedIndex < options.length - 1) {
 			focusedOption = options[focusedIndex + 1];
