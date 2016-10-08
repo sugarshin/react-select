@@ -501,7 +501,7 @@ var Select = _react2['default'].createClass({
 		// focus to the selected option
 		if (this.refs.menu && this.refs.focused && this.state.isOpen && !this.hasScrolledToOption) {
 			var focusedOptionNode = _reactDom2['default'].findDOMNode(this.refs.focused);
-			var menuNode = _reactDom2['default'].findDOMNode(this.refs.menu);
+			var menuNode = _reactDom2['default'].findDOMNode(this.refs.menu).children[0];
 			menuNode.scrollTop = focusedOptionNode.offsetTop;
 			this.hasScrolledToOption = true;
 		} else if (!this.state.isOpen) {
@@ -511,7 +511,7 @@ var Select = _react2['default'].createClass({
 		if (this._scrollToFocusedOptionOnUpdate && this.refs.focused && this.refs.menu) {
 			this._scrollToFocusedOptionOnUpdate = false;
 			var focusedDOM = _reactDom2['default'].findDOMNode(this.refs.focused);
-			var menuDOM = _reactDom2['default'].findDOMNode(this.refs.menu);
+			var menuDOM = _reactDom2['default'].findDOMNode(this.refs.menu).children[0];
 			var focusedRect = focusedDOM.getBoundingClientRect();
 			var menuRect = menuDOM.getBoundingClientRect();
 			if (focusedRect.bottom > menuRect.bottom || focusedRect.top < menuRect.top) {
@@ -912,6 +912,10 @@ var Select = _react2['default'].createClass({
 				break;
 			}
 		}
+
+		// Not infinite scroll
+		if (dir === 'previous' && focusedIndex === 0 || dir === 'next' && focusedIndex === options.length - 1) return;
+
 		var focusedOption = options[0];
 		if (dir === 'next' && focusedIndex > -1 && focusedIndex < options.length - 1) {
 			focusedOption = options[focusedIndex + 1];
