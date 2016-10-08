@@ -181,7 +181,7 @@ const Select = React.createClass({
 		// focus to the selected option
 		if (this.refs.menu && this.refs.focused && this.state.isOpen && !this.hasScrolledToOption) {
 			let focusedOptionNode = ReactDOM.findDOMNode(this.refs.focused);
-			let menuNode = ReactDOM.findDOMNode(this.refs.menu);
+			let menuNode = ReactDOM.findDOMNode(this.refs.menu).children[0];
 			menuNode.scrollTop = focusedOptionNode.offsetTop;
 			this.hasScrolledToOption = true;
 		} else if (!this.state.isOpen) {
@@ -191,7 +191,7 @@ const Select = React.createClass({
 		if (this._scrollToFocusedOptionOnUpdate && this.refs.focused && this.refs.menu) {
 			this._scrollToFocusedOptionOnUpdate = false;
 			var focusedDOM = ReactDOM.findDOMNode(this.refs.focused);
-			var menuDOM = ReactDOM.findDOMNode(this.refs.menu);
+			var menuDOM = ReactDOM.findDOMNode(this.refs.menu).children[0];
 			var focusedRect = focusedDOM.getBoundingClientRect();
 			var menuRect = menuDOM.getBoundingClientRect();
 			if (focusedRect.bottom > menuRect.bottom || focusedRect.top < menuRect.top) {
